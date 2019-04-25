@@ -1,11 +1,7 @@
-"""
-SECTION 1 : Load and setup data for training
-"""
-
 import random
 import math
-random.seed(123)
-
+import copy
+# random.seed(123)
 
 # Load file
 def read_data_set(data_set):
@@ -31,57 +27,6 @@ def change_string_to_float(string_list):
     return float_list
 
 
-data_set = read_data_set("iris.txt")
-
-# Change string value to numeric
-for line in data_set:
-    line[4] = get_classification_value(line[4])
-    line[:4] = change_string_to_float(line)
-
-print(data_set)
-
-# Split x and y (feature and target)
-random.shuffle(data_set)
-
-data_train = data_set[:int(len(data_set) * 0.5)]
-data_test = data_set[int(len(data_set) * 0.5):]
-
-train_set = []
-train_result = []
-for data in data_train:
-    train_set.append(data[:4])
-    train_result.append(data[4])
-
-test_set = []
-test_result = []
-for data in data_test:
-    test_set.append(data[:4])
-    test_result.append(data[4])
-
-# Define parameter
-alpha = 0.005
-epoch = 400
-neuron = [4, 4, 3] # number of neuron each layer
-
-# Initiate weight and bias with 0 value
-weight = [[0 for j in range(neuron[1])] for i in range(neuron[0])]
-weight_2 = [[0 for j in range(neuron[2])] for i in range(neuron[1])]
-bias = [0 for i in range(neuron[1])]
-bias_2 = [0 for i in range(neuron[2])]
-
-"""
-SECTION 2 : Build and Train Model
-Multilayer perceptron model, with one hidden layer.
-input layer : 4 neuron, represents the feature of Iris
-hidden layer : 3 neuron, activation using sigmoid
-output layer : 3 neuron, represents the class of Iris
-optimizer = gradient descent
-loss function = Square ROot Error
-learning rate = 0.005
-epoch = 400
-best result = 96.67%
-"""
-
 def matrix_mul_bias(A, B, bias): # Matrix multiplication (for Testing)
     C = []
     for i in range(len(A)):
@@ -93,7 +38,6 @@ def matrix_mul_bias(A, B, bias): # Matrix multiplication (for Testing)
         for j in range(len(B[0])):
             for k in range(len(B)):
                 C[i][j] += A[i][k] * B[k][j]
-            
             C[i][j] += bias[j]
     
     return C
@@ -107,7 +51,7 @@ def vec_mat_bias(A, B, bias): # Vector (A) x matrix (B) multiplication
     for j in range(len(B[0])):
         for k in range(len(B)):
             C[j] += A[k] * B[k][j]
-            C[j] += bias[j]
+        C[j] += bias[j]
     
     return C
 
@@ -134,79 +78,167 @@ def sigmoid(A, deriv=False):
     return A
 
 
-# Initiate weight with random between -1.0 ... 1.0
-for i in range(neuron[0]):
-    for j in range(neuron[1]):
-        weight[i][j] = 2 * random.random() - 1
 
-for i in range(neuron[1]):
-    for j in range(neuron[2]):
-        weight_2[i][j] = 2 * random.random() - 1
+if __name__=="__main__":
+
+    data_set = read_data_set("iris.txt")
+
+    # Change string value to numeric
+    for line in data_set:
+        line[4] = get_classification_value(line[4])
+        line[:4] = change_string_to_float(line)
 
 
-for e in range(epoch):
-    cost_total = 0
-    for idx, x in enumerate(train_set): # Update for each data; SGD
-        
-        # Forward propagation
-        h_1 = vec_mat_bias(x, weight, bias)
-        X_1 = sigmoid(h_1)
-        h_2 = vec_mat_bias(X_1, weight_2, bias_2)
-        X_2 = sigmoid(h_2)
-        
-        # Convert to One-hot target
-        target = [0, 0, 0]
-        target[int(train_result[idx])] = 1
+    # Create a train and a test data
+    random.shuffle(data_set)
+    # data_train = data_set
+    # data_test = data_set
+    data_train = data_set[:int(len(data_set) * 0.5)]
+    data_test = data_set[int(len(data_set) * 0.5):]
 
-        # Cost function, Square Root Eror
-        eror = 0
-        for i in range(3):
-            eror +=  0.5 * (target[i] - X_2[i]) ** 2 
-        cost_total += eror
+    train_set = []
+    train_result = []
+    for data in data_train:
+        # split the entrance and the result
+        train_set.append(data[:4])
+        train_result.append(data[4])
 
-        # Backward propagation
-        # Update weight_2 and bias_2 (layer 2)
-        delta_2 = []
-        for j in range(neuron[2]):
-            delta_2.append(-1 * (target[j]-X_2[j]) * X_2[j] * (1-X_2[j]))
+    test_set = []
+    test_result = []
+    for data in data_test:
+        # split the entrance and the result
+        test_set.append(data[:4])
+        test_result.append(data[4])
 
-        for i in range(neuron[1]):
-            for j in range(neuron[2]):
-                weight_2[i][j] -= alpha * (delta_2[j] * X_1[i])
-                bias_2[j] -= alpha * delta_2[j]
-        
-        # Update weight and bias (layer 1)
-        delta_1 = mat_vec(weight_2, delta_2)
-        for j in range(neuron[1]):
-            delta_1[j] = delta_1[j] * (X_1[j] * (1-X_1[j]))
-        
-        for i in range(neuron[0]):
-            for j in range(neuron[1]):
-                weight[i][j] -=  alpha * (delta_1[j] * x[i])
-                bias[j] -= alpha * delta_1[j]
+
+    # Define parameter
+    alpha = 0.01
+    epoch = 700
+    neurons = [4, 6, 3] # number of neurons each layer
+
+
+    # Initiate weight and bias with 0 value
+    weights = []
+    for i in range(len(neurons) - 1):
+        weights.append([])
+        for j in range(neurons[i]):
+            weights[i].append([])
+            for k in range(neurons[i + 1]):
+                weights[i][j].append(0)
     
-    cost_total /= len(train_set)
-    if(e % 100 == 0):
-        print(cost_total)
+    weight = []
+    for i in range(len(weights[0])):
+        weight.append([])
+        for j in range(len(weights[0][i])):
+            weight[i].append(weights[0][i][j])
 
-"""
-SECTION 3 : Testing
-"""
+    weight_2 = []
+    for i in range(len(weights[1])):
+        weight_2.append([])
+        for j in range(len(weights[1][i])):
+            weight_2[i].append(weights[1][i][j])
 
-res = matrix_mul_bias(test_set, weight, bias)
-res_2 = matrix_mul_bias(res, weight_2, bias)
+    
+    bias_list = []
+    for i in range(1, len(neurons)):
+        bias_list.append([])
+        for j in range(neurons[i]):
+            bias_list[i-1].append(0)
 
-# Get prediction
-preds = []
-for r in res_2:
-    preds.append(max(enumerate(r), key=lambda x:x[1])[0])
+    bias = []
+    for i in range(len(bias_list[0])):
+        bias.append(bias_list[0][i])
 
-# Print prediction
-print(preds)
+    bias_2 = []
+    for i in range(len(bias_list[1])):
+        bias_2.append(bias_list[1][i])
 
-# Calculate accuration
-acc = 0.0
-for i in range(len(preds)):
-    if preds[i] == int(test_result[i]):
-        acc += 1
-print(acc / len(preds) * 100, "%")
+    # Initiate weight with random between -1.0 ... 1.0
+    for i in range(neurons[0]):
+        for j in range(neurons[1]):
+            weight[i][j] = 2 * random.random() - 1
+
+    for i in range(neurons[1]):
+        for j in range(neurons[2]):
+            weight_2[i][j] = 2 * random.random() - 1
+
+
+    for e in range(epoch):
+        cost_total = 0
+        for idx, data_list in enumerate(train_set): # Update for each data; SGD
+            
+            
+            # Forward propagation
+            h_1 = vec_mat_bias(data_list, weight, bias)
+            X_1 = sigmoid(h_1)
+            h_2 = vec_mat_bias(X_1, weight_2, bias_2)
+            X_2 = sigmoid(h_2)
+            
+
+
+            # Convert to One-hot target
+            target = [0] * neurons[-1]
+            target[int(train_result[idx])] = 1
+
+
+            # Cost function, Square Root Eror
+            eror = 0
+            for i in range(neurons[-1]):
+                eror +=  0.5 * (target[i] - X_2[i]) ** 2 
+            cost_total += eror
+
+            # Backward propagation
+            # Update weight_2 and bias_2 (layer 2)
+
+
+
+            delta_2 = []
+            for j in range(neurons[2]):
+                delta_2.append(-1 * (target[j]-X_2[j]) * X_2[j] * (1-X_2[j]))
+            
+
+            for i in range(neurons[1]):
+                for j in range(neurons[2]):
+                    weight_2[i][j] -= alpha * (delta_2[j] * X_1[i])
+                    bias_2[j] -= alpha * delta_2[j]
+            
+            delta_1 = mat_vec(weight_2, delta_2)
+            for j in range(neurons[1]):
+                delta_1[j] = delta_1[j] * (X_1[j] * (1-X_1[j]))
+            
+            
+            # Update weight and bias (layer 1)
+            delta_1 = mat_vec(weight_2, delta_2)
+            for j in range(neurons[1]):
+                delta_1[j] = delta_1[j] * (X_1[j] * (1-X_1[j]))
+            
+            for i in range(neurons[0]):
+                for j in range(neurons[1]):
+                    weight[i][j] -=  alpha * (delta_1[j] * data_list[i])
+                    bias[j] -= alpha * delta_1[j]
+        
+
+        cost_total /= len(train_set)
+        if(e % 100 == 0):
+            print(cost_total)
+
+    res = matrix_mul_bias(test_set, weight, bias)
+    res_2 = matrix_mul_bias(res, weight_2, bias_2)
+
+    # Get prediction
+    preds = []
+    for r in res_2:
+        preds.append(max(enumerate(r), key=lambda x:x[1])[0])
+
+    for i in range(len(test_result)):
+        test_result[i] = int(test_result[i])
+    # Print prediction
+    print(test_result)
+    print(preds)
+
+    # Calculate accuration
+    acc = 0.0
+    for i in range(len(preds)):
+        if preds[i] == int(test_result[i]):
+            acc += 1
+    print(acc / len(preds) * 100, "%")
