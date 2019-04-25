@@ -12,6 +12,8 @@ def read_data_set(data_set):
 
     return data_set
 
+
+# Change classification to int values
 def get_classification_value(classification):
     if(classification == "Iris-setosa"):
         return 0
@@ -20,6 +22,8 @@ def get_classification_value(classification):
     if(classification == "Iris-virginica"):
         return 2
 
+
+# Convert string list to float list
 def change_string_to_float(string_list):
     float_list = []
     for i in range(len(string_list)):
@@ -27,7 +31,8 @@ def change_string_to_float(string_list):
     return float_list
 
 
-def matrix_mul_bias(A, B, bias): # Matrix multiplication (for Testing)
+# Matrix multiplication (for Testing)
+def matrix_mul_bias(A, B, bias):
     C = []
     for i in range(len(A)):
         C.append([])
@@ -43,7 +48,8 @@ def matrix_mul_bias(A, B, bias): # Matrix multiplication (for Testing)
     return C
 
 
-def vec_mat_bias(A, B, bias): # Vector (A) x matrix (B) multiplication
+# Vector (A) x matrix (B) multiplication
+def vec_mat_bias(A, B, bias):
     C = []
     for i in range(len(B[0])):
         C.append(0)
@@ -56,7 +62,8 @@ def vec_mat_bias(A, B, bias): # Vector (A) x matrix (B) multiplication
     return C
 
 
-def mat_vec(A, B): # Matrix (A) x vector (B) multipilicatoin (for backprop)
+# Matrix (A) x vector (B) multipilicatoin (for backprop)
+def mat_vec(A, B): 
     C = []
     for i in range(len(A)):
         C.append(0)
@@ -68,8 +75,9 @@ def mat_vec(A, B): # Matrix (A) x vector (B) multipilicatoin (for backprop)
     return C
 
 
+# derivation of sigmoid (for backprop)
 def sigmoid(A, deriv=False):
-    if deriv: # derivation of sigmoid (for backprop)
+    if deriv: 
         for i in range(len(A)):
             A[i] = A[i] * (1 - A[i])
     else:
@@ -77,8 +85,7 @@ def sigmoid(A, deriv=False):
             A[i] = 1 / (1 + math.exp(-A[i]))
     return A
 
-
-
+# Main funciton
 if __name__=="__main__":
 
     data_set = read_data_set("iris.txt")
@@ -233,8 +240,9 @@ if __name__=="__main__":
     for i in range(len(test_result)):
         test_result[i] = int(test_result[i])
     # Print prediction
-    print(test_result)
-    print(preds)
+    print("Resultado esperado: ", test_result)
+    print("Predição:", preds)
+
 
     # Calculate accuration
     acc = 0.0
