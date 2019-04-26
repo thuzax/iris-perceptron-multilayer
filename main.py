@@ -1,7 +1,7 @@
 import random
 import math
 import copy
-# random.seed(123)
+random.seed(38)
 
 # Load file
 def read_data_set(data_set):
@@ -98,10 +98,10 @@ if __name__=="__main__":
 
     # Create a train and a test data
     random.shuffle(data_set)
-    # data_train = data_set
-    # data_test = data_set
-    data_train = data_set[:int(len(data_set) * 0.5)]
-    data_test = data_set[int(len(data_set) * 0.5):]
+    data_train = data_set
+    data_test = data_set
+    # data_train = data_set[:int(len(data_set) * 0.5)]
+    # data_test = data_set[int(len(data_set) * 0.5):]
 
     train_set = []
     train_result = []
@@ -117,10 +117,10 @@ if __name__=="__main__":
         test_set.append(data[:4])
         test_result.append(data[4])
 
-
+    
     # Define parameter
     alpha = 0.01
-    epoch = 700
+    epoch = 500
     neurons = [4, 6, 3] # number of neurons each layer
 
 

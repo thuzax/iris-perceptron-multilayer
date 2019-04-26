@@ -1,7 +1,7 @@
 import random
 import math
 import copy
-random.seed(1)
+# random.seed(1)
 
 # Matrix multiplication (for Testing)
 def matrix_mul_bias(A, B, bias):
@@ -49,26 +49,19 @@ def mat_vec(A, B):
 
 # derivation of sigmoid (for backprop)
 def sigmoid(A, deriv=False):
-    if isinstance(A, list):
-        if deriv: 
-            for i in range(len(A)):
-                A[i] = A[i] * (1 - A[i])
-        else:
-            for i in range(len(A)):
-                A[i] = 1 / (1 + math.exp(-A[i]))
+    if deriv: 
+        for i in range(len(A)):
+            A[i] = A[i] * (1 - A[i])
     else:
-        if deriv: 
-            A = A * (1 - A)
-        else:
-            A = 1 / (1 + math.exp(-A))
+        for i in range(len(A)):
+            A[i] = 1 / (1 + math.exp(-A[i]))
     return A
-
 # Main funciton
 if __name__=="__main__":
 
     # Define parameter
-    alpha = 0.01
-    epoch = 1000
+    alpha = 1
+    epoch = 15000
     neurons = [2, 3, 2] # number of neurons each layer
 
 
@@ -109,6 +102,7 @@ if __name__=="__main__":
         bias_2.append(bias_list[1][i])
 
     # Initiate weight with random between -1.0 ... 1.0
+    
     for i in range(neurons[0]):
         for j in range(neurons[1]):
             weight[i][j] = 2 * random.random() - 1
@@ -132,10 +126,12 @@ if __name__=="__main__":
             X_2 = sigmoid(h_2)
             
 
-
+            # print(X_2)
             # Convert to One-hot target
             target = [0] * neurons[-1]
             target[int(xor_test_set_result[idx])] = 1
+            # print(target)
+            # print("****")
 
 
             # Cost function, Square Root Eror
@@ -182,8 +178,26 @@ if __name__=="__main__":
         if(e % 100 == 0):
             print(cost_total)
 
+    print(xor_test_set)
+    print("----")
+    print(weight)
+    print("----")
+    print(bias)
+    print("----")
+
+
     res = matrix_mul_bias(xor_test_set, weight, bias)
     res_2 = matrix_mul_bias(res, weight_2, bias_2)
+
+    print(res)
+    print("@@@@@@@@@")
+    print("----")
+    print(weight_2)
+    print("----")
+    print(bias_2)
+    print("----")
+    print(res_2)
+    print("###")
 
     # Get prediction
     preds = []
