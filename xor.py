@@ -1,14 +1,15 @@
-#!/usr/bin/python
-
 import numpy as np
 import math
+import random
 
-def sigmoid(x):
-  return 1.0/(1.0 + np.exp(-x))
+def sigmoid(valor):
+  result = 1.0 / (1.0 + np.exp(-valor))
+  return result
 
 
-def sigmoid_derivada(x):
-  return x*(1.0 - x)
+def sigmoid_derivada(valor):
+  result = valor * (1.0 - valor)
+  return result
 
 
 class MLP:
