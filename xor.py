@@ -30,8 +30,8 @@ class MLP:
     return l2_result
 
 
-  def train(self, inputs,outputs, it):
-    for i in range(it):
+  def train(self, inputs, outputs, k):
+    for i in range(k):
       # Foward propagation para todos os testes
       l_inputs = inputs
       l_hidden = sigmoid(np.dot(l_inputs, self.pesos_i))
