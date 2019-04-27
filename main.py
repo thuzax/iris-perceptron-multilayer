@@ -96,7 +96,7 @@ if __name__=="__main__":
         line[:4] = change_string_to_float(line)
 
 
-    # Create a train and a test data
+    # Create a train and a test data)
     data_train = data_set
     data_test = []
 
@@ -116,7 +116,7 @@ if __name__=="__main__":
         if(num_max_2 < num_max and t[4] == 2):
             num_max_2 += 1
             data_test.append(t)
-    print(data_test)
+
 
     # data_train = data_set[:int(len(data_set) * 0.5)]
     # data_test = data_set[int(len(data_set) * 0.5):]
@@ -213,10 +213,6 @@ if __name__=="__main__":
             cost_total += eror
 
             # Backward propagation
-            # Update weight_2 and bias_2 (layer 2)
-
-
-
             delta_2 = []
             for j in range(neurons[2]):
                 delta_2.append(-1 * (target[j]-X_2[j]) * X_2[j] * (1-X_2[j]))
@@ -245,9 +241,9 @@ if __name__=="__main__":
 
         cost_total /= len(train_set)
         if(e % 100 == 0):
-            print(cost_total)
-
-    random.shuffle(data_test)
+            print("Erro da epoca ", e, ": ", cost_total)
+        elif(e == epoch - 1):
+            print("Erro da ultima epoca: ", cost_total)
 
     res = matrix_mul_bias(test_set, weight, bias)
     res_2 = matrix_mul_bias(res, weight_2, bias_2)
