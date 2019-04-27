@@ -1,219 +1,72 @@
-import random
+#!/usr/bin/python
+
+import numpy as np
 import math
-import copy
-# random.seed(1)
 
-# Matrix multiplication (for Testing)
-def matrix_mul_bias(A, B, bias):
-    C = []
-    for i in range(len(A)):
-        C.append([])
-        for j in range(len(B[0])):
-            C[i].append(0)
+def sigmoid(x):
+  return 1.0/(1.0 + np.exp(-x))
+
+
+def sigmoid_derivada(x):
+  return x*(1.0 - x)
+
+
+class MLP:
+  def __init__(self, inputs):
+    self.inputs = inputs
+
+    self.tamanho = len(self.inputs)
+    self.tamanho_input = len(self.inputs[0])
+
+    self.pesos_i = np.random.random((self.tamanho_input, self.tamanho))
+    self.pesos_h = np.random.random((self.tamanho, 1))
+
+  # Predição
+  def run(self, input_run):
+    l1_result = sigmoid(np.dot(input_run, self.pesos_i))
+    l2_result = sigmoid(np.dot(l1_result, self.pesos_h))
     
-    for i in range(len(A)):
-        for j in range(len(B[0])):
-            for k in range(len(B)):
-                C[i][j] += A[i][k] * B[k][j]
-            C[i][j] += bias[j]
-    
-    return C
+    return l2_result
 
 
-# Vector (A) x matrix (B) multiplication
-def vec_mat_bias(A, B, bias):
-    C = []
-    for i in range(len(B[0])):
-        C.append(0)
-    
-    for j in range(len(B[0])):
-        for k in range(len(B)):
-            C[j] += A[k] * B[k][j]
-        C[j] += bias[j]
-    
-    return C
+  def train(self, inputs,outputs, it):
+    for i in range(it):
+      # Foward propagation para todos os testes
+      l_inputs = inputs
+      l_hidden = sigmoid(np.dot(l_inputs, self.pesos_i))
+      l_outputs = sigmoid(np.dot(l_hidden, self.pesos_h))
 
+      # Backward propagation para todos os testes
+      l_outputs_err = outputs - l_outputs
+      l_outputs_delta  =  np.multiply(l_outputs_err, sigmoid_derivada(l_outputs))
 
-# Matrix (A) x vector (B) multipilicatoin (for backprop)
-def mat_vec(A, B): 
-    C = []
-    for i in range(len(A)):
-        C.append(0)
-    
-    for i in range(len(A)):
-        for j in range(len(B)):
-            C[i] += A[i][j] * B[j]
-    
-    return C
+      l_hidden_err = np.dot(l_outputs_delta, self.pesos_h.T)
+      l_hidden_delta = np.multiply(l_hidden_err, sigmoid_derivada(l_hidden))
 
+      # Correção dos vaores
+      self.pesos_h += np.dot(l_hidden.T, l_outputs_delta)
+      self.pesos_i += np.dot(l_inputs.T, l_hidden_delta)
 
-# derivation of sigmoid (for backprop)
-def sigmoid(A, deriv=False):
-    if deriv: 
-        for i in range(len(A)):
-            A[i] = A[i] * (1 - A[i])
-    else:
-        for i in range(len(A)):
-            A[i] = 1 / (1 + math.exp(-A[i]))
-    return A
-# Main funciton
-if __name__=="__main__":
+inputs_treino = np.array([[0,0], [0,1], [1,0], [1,1] ])
+outputs = np.array([ [0], [1],[1],[0] ])
 
-    # Define parameter
-    alpha = 1
-    epoch = 15000
-    neurons = [2, 3, 2] # number of neurons each layer
+n = MLP(inputs_treino)
+print(n.run(inputs_treino))
+n.train(inputs_treino, outputs, 10000)
 
+inputs_testes = np.array([[0,0], [0,1], [1,0], [1,1], [0,0], [0,1], [1,0], [1,1] ])
+outputs_esperados = np.array([0, 1, 1, 0, 0, 1, 1, 0])
+results = n.run(inputs_testes)
 
-    # Initiate weight and bias with 0 value
-    weights = []
-    for i in range(len(neurons) - 1):
-        weights.append([])
-        for j in range(neurons[i]):
-            weights[i].append([])
-            for k in range(neurons[i + 1]):
-                weights[i][j].append(0)
-    
-    weight = []
-    for i in range(len(weights[0])):
-        weight.append([])
-        for j in range(len(weights[0][i])):
-            weight[i].append(weights[0][i][j])
+acc = 0.0
+for idx, result in enumerate(results):
+  if result < 0.5:
+    print(inputs_testes[idx][0], " XOR ", inputs_testes[idx][1], " = ", math.floor(result))
+    if math.floor(result) == int(outputs_esperados[idx]):
+      acc += 1
+  else:
+    print(inputs_testes[idx][0], " XOR ", inputs_testes[idx][1], " = ", math.ceil(result))
+    if math.ceil(result) == int(outputs_esperados[idx]):
+      acc += 1
 
-    weight_2 = []
-    for i in range(len(weights[1])):
-        weight_2.append([])
-        for j in range(len(weights[1][i])):
-            weight_2[i].append(weights[1][i][j])
-
-    
-    bias_list = []
-    for i in range(1, len(neurons)):
-        bias_list.append([])
-        for j in range(neurons[i]):
-            bias_list[i-1].append(0)
-
-    bias = []
-    for i in range(len(bias_list[0])):
-        bias.append(bias_list[0][i])
-
-    bias_2 = []
-    for i in range(len(bias_list[1])):
-        bias_2.append(bias_list[1][i])
-
-    # Initiate weight with random between -1.0 ... 1.0
-    
-    for i in range(neurons[0]):
-        for j in range(neurons[1]):
-            weight[i][j] = 2 * random.random() - 1
-
-    for i in range(neurons[1]):
-        for j in range(neurons[2]):
-            weight_2[i][j] = 2 * random.random() - 1
-
-    xor_test_set = [[0,0], [0,1], [1,0], [1,1]]
-    xor_test_set_result = [0,1,1,0]
-
-    for e in range(epoch):
-        cost_total = 0
-        for idx, data_list in enumerate(xor_test_set): # Update for each data; SGD
-            
-            
-            # Forward propagation
-            h_1 = vec_mat_bias(data_list, weight, bias)
-            X_1 = sigmoid(h_1)
-            h_2 = vec_mat_bias(X_1, weight_2, bias_2)
-            X_2 = sigmoid(h_2)
-            
-
-            # print(X_2)
-            # Convert to One-hot target
-            target = [0] * neurons[-1]
-            target[int(xor_test_set_result[idx])] = 1
-            # print(target)
-            # print("****")
-
-
-            # Cost function, Square Root Eror
-            eror = 0
-            for i in range(neurons[-1]):
-                eror +=  0.5 * (target[i] - X_2[i]) ** 2 
-            cost_total += eror
-
-            # Backward propagation
-            # Update weight_2 and bias_2 (layer 2)
-
-
-
-            delta_2 = []
-            for j in range(neurons[2]):
-                delta_2.append(-1 * (target[j]-X_2[j]) * X_2[j] * (1-X_2[j]))
-
-            # print(delta_2)
-            
-
-            for i in range(neurons[1]):
-                for j in range(neurons[2]):
-                    weight_2[i][j] -= alpha * (delta_2[j] * X_1[i])
-                    bias_2[j] -= alpha * delta_2[j]
-            
-            delta_1 = mat_vec(weight_2, delta_2)
-            for j in range(neurons[1]):
-                delta_1[j] = delta_1[j] * (X_1[j] * (1-X_1[j]))
-            
-            
-            # Update weight and bias (layer 1)
-            delta_1 = mat_vec(weight_2, delta_2)
-            for j in range(neurons[1]):
-                delta_1[j] = delta_1[j] * (X_1[j] * (1-X_1[j]))
-                # delta_1[j] = delta_1[j] * sigmoid(X_1[j], deriv=True)
-            
-            for i in range(neurons[0]):
-                for j in range(neurons[1]):
-                    weight[i][j] -=  alpha * (delta_1[j] * data_list[i])
-                    bias[j] -= alpha * delta_1[j]
-        
-
-        cost_total /= len(xor_test_set)
-        if(e % 100 == 0):
-            print(cost_total)
-
-    print(xor_test_set)
-    print("----")
-    print(weight)
-    print("----")
-    print(bias)
-    print("----")
-
-
-    res = matrix_mul_bias(xor_test_set, weight, bias)
-    res_2 = matrix_mul_bias(res, weight_2, bias_2)
-
-    print(res)
-    print("@@@@@@@@@")
-    print("----")
-    print(weight_2)
-    print("----")
-    print(bias_2)
-    print("----")
-    print(res_2)
-    print("###")
-
-    # Get prediction
-    preds = []
-    for r in res_2:
-        preds.append(max(enumerate(r), key=lambda x:x[1])[0])
-
-    for i in range(len(xor_test_set_result)):
-        xor_test_set_result[i] = int(xor_test_set_result[i])
-    # Print prediction
-    print("Resultado esperado: ", xor_test_set_result)
-    print("Predição:", preds)
-
-
-    # Calculate accuration
-    acc = 0.0
-    for i in range(len(preds)):
-        if preds[i] == int(xor_test_set_result[i]):
-            acc += 1
-    print(acc / len(preds) * 100, "%")
+print(acc / len(inputs_testes) * 100, "%")

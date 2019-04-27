@@ -1,7 +1,7 @@
 import random
 import math
 import copy
-random.seed(38)
+random.seed(28)
 
 # Load file
 def read_data_set(data_set):
@@ -97,9 +97,27 @@ if __name__=="__main__":
 
 
     # Create a train and a test data
-    random.shuffle(data_set)
     data_train = data_set
-    data_test = data_set
+    data_test = []
+
+    num_max = 15
+
+    num_max_0 = 0
+    num_max_1 = 0
+    num_max_2 = 0
+
+    for t in data_set:
+        if(num_max_0 < num_max and t[4] == 0):
+            num_max_0 += 1
+            data_test.append(t)
+        if(num_max_1 < num_max and t[4] == 1):
+            num_max_1 += 1
+            data_test.append(t)
+        if(num_max_2 < num_max and t[4] == 2):
+            num_max_2 += 1
+            data_test.append(t)
+    print(data_test)
+
     # data_train = data_set[:int(len(data_set) * 0.5)]
     # data_test = data_set[int(len(data_set) * 0.5):]
 
@@ -120,7 +138,7 @@ if __name__=="__main__":
     
     # Define parameter
     alpha = 0.01
-    epoch = 500
+    epoch = 700
     neurons = [4, 6, 3] # number of neurons each layer
 
 
@@ -228,6 +246,8 @@ if __name__=="__main__":
         cost_total /= len(train_set)
         if(e % 100 == 0):
             print(cost_total)
+
+    random.shuffle(data_test)
 
     res = matrix_mul_bias(test_set, weight, bias)
     res_2 = matrix_mul_bias(res, weight_2, bias_2)
